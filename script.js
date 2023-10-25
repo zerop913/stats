@@ -1,50 +1,64 @@
 document.addEventListener("DOMContentLoaded", function () {
-  fetch("data.php")
-    .then((response) => response.json())
-    .then((data) => {
-      const statsContainer = document.getElementById("stats");
+    fetch('./data/data.json')
+        .then(response => response.json())
+        .then(data => {
+            const columnStats = {};
 
-      for (const columnName in data) {
-        const columnStats = data[columnName];
-        const total = Object.values(columnStats).reduce((a, b) => a + b, 0);
+            data.forEach(entry => {
+                entry.forEach(column => {
+                    const columnName = column[0];
+                    const columnValue = column[1];
 
-        const columnDiv = document.createElement("div");
-        columnDiv.classList.add("p-4", "bg-gray-200", "rounded", "mb-4");
+                    if (!columnStats[columnName]) {
+                        columnStats[columnName] = {};
+                    }
 
-        const title = document.createElement("h2");
-        title.classList.add(
-          "text-lg",
-          "font-semibold",
-          "mb-2",
-          "cursor-pointer"
-        );
-        title.innerText = columnName;
-        columnDiv.appendChild(title);
+                    if (columnValue in columnStats[columnName]) {
+                        columnStats[columnName][columnValue]++;
+                    } else {
+                        columnStats[columnName][columnValue] = 1;
+                    }
+                });
+            });
 
-        const listContainer = document.createElement("div");
-        listContainer.classList.add("hidden", "divide-y", "divide-gray-400");
-        columnDiv.appendChild(listContainer);
+            const statsContainer = document.getElementById('stats');
 
-        title.addEventListener("click", function () {
-          listContainer.classList.toggle("hidden");
+            for (const columnName in columnStats) {
+                const columnDiv = document.createElement('div');
+                columnDiv.classList.add('p-4', 'bg-gray-200', 'rounded', 'mb-4');
+
+                const title = document.createElement('h2');
+                title.classList.add('text-lg', 'font-semibold', 'mb-2', 'cursor-pointer');
+                title.innerText = columnName;
+                columnDiv.appendChild(title);
+
+                const listContainer = document.createElement('div');
+                listContainer.classList.add('hidden', 'divide-y', 'divide-gray-400');
+                columnDiv.appendChild(listContainer);
+
+                title.addEventListener('click', function () {
+                    listContainer.classList.toggle('hidden');
+                });
+
+                const columnData = columnStats[columnName];
+                const total = Object.values(columnData).reduce((a, b) => a + b, 0);
+
+                for (const value in columnData) {
+                    const percentage = ((columnData[value] / total) * 100).toFixed(2);
+                    const row = document.createElement('div');
+                    row.classList.add('flex', 'justify-between', 'items-center', 'py-2');
+                    const label = document.createElement('span');
+                    label.classList.add('text-gray-700');
+                    label.innerText = `${value}:`;
+                    const percentageText = document.createElement('span');
+                    percentageText.classList.add('text-blue-500', 'font-medium');
+                    percentageText.innerText = `${percentage}%`;
+                    row.appendChild(label);
+                    row.appendChild(percentageText);
+                    listContainer.appendChild(row);
+                }
+
+                statsContainer.appendChild(columnDiv);
+            }
         });
-
-        for (const value in columnStats) {
-          const percentage = ((columnStats[value] / total) * 100).toFixed(2);
-          const row = document.createElement("div");
-          row.classList.add("flex", "justify-between", "items-center", "py-2");
-          const label = document.createElement("span");
-          label.classList.add("text-gray-700");
-          label.innerText = `${value}:`;
-          const percentageText = document.createElement("span");
-          percentageText.classList.add("text-blue-500", "font-medium");
-          percentageText.innerText = `${percentage}%`;
-          row.appendChild(label);
-          row.appendChild(percentageText);
-          listContainer.appendChild(row);
-        }
-
-        statsContainer.appendChild(columnDiv);
-      }
-    });
 });
