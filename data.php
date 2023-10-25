@@ -1,5 +1,5 @@
 <?php
-$jsonData = file_get_contents('data.json');
+$jsonData = file_get_contents('./data.json');
 $data = json_decode($jsonData, true);
 $columnStats = [];
 
